@@ -1,0 +1,26 @@
+{
+	"not_found": {
+		"user.notFound": {
+			"en": "User not found",
+			"ms": "Pengguna tidak dijumpai"
+		}
+	},
+	"bad_input": {
+		"user.invalidName": {
+			"en": "Name cannot contain special characters: {{.Name}}",
+			"ms": "Nama tidak boleh mengandungi aksara khas: {{.Name}}"
+		},
+		"user.invalidAge": {
+			"en": "Age cannot be greater than {{.MaxAge}}",
+			"ms": "Umur tidak boleh melebihi {{.MaxAge}}"
+		},
+		"user.underAge": {
+			"en": "You must be at least {{.MinAge}}",
+			"ms": "Anda mestilah sekurang-kurangnya {{.MinAge}}"
+		},
+		"user.validationErrors": {
+			"en": "Create user failed",
+			"ms": "Buat pengguna gagal"
+		}
+	}
+}
