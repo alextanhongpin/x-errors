@@ -12,6 +12,7 @@ var (
 	ErrInvalidKind          = errors.New("kind is invalid")
 	ErrCodeNotFound         = errors.New("error code not found")
 	ErrDuplicateCode        = errors.New("duplicate error code")
+	ErrPartial              = errors.New("rendering incomplete error")
 )
 
 func makeTemplate(msg string, data any) (string, error) {

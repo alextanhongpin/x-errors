@@ -7,8 +7,6 @@ import (
 	"golang.org/x/text/language"
 )
 
-var ErrPartial = errors.New("rendering incomplete error")
-
 // Error represents an error.
 type Error struct {
 	Kind    string `json:"kind"`

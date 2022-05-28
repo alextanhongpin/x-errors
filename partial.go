@@ -5,10 +5,11 @@ type Partial[T any] struct {
 }
 
 func NewPartial[T any](err *Error) *Partial[T] {
-	err.partial = true
+	e := err.clone()
+	e.partial = true
 
 	return &Partial[T]{
-		err: err.clone(),
+		err: e,
 	}
 }
 
@@ -31,8 +32,8 @@ func (e *Partial[T]) SetParams(params T) *Error {
 	return err
 }
 
-// Self returns the base error. Useful when checking errors.Is without setting
+// Unwrap returns the base error. Useful when checking errors.Is without setting
 // the params.
-func (e *Partial[T]) Self() *Error {
+func (e *Partial[T]) Unwrap() *Error {
 	return e.err
 }

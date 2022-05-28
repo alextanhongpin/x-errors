@@ -27,13 +27,13 @@ func (e *ErrorWithoutParams) MarshalJSON() ([]byte, error) {
 }
 
 func main() {
-	debugError(user.ErrInvalidName.SetParams(user.InvalidNameParams{
+	debug(user.ErrInvalidName.SetParams(user.InvalidNameParams{
 		Name: "john appleseed",
 	}))
 }
 
-func debugError(err error) {
-	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.Self()))
+func debug(err error) {
+	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.Unwrap()))
 
 	var custom *app.Error
 	if errors.As(err, &custom) {
@@ -46,8 +46,8 @@ func debugError(err error) {
 	localized := custom.Localize(app.MS)
 	fmt.Println("localized?", localized)
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrInvalidName.Self())
-	fmt.Println("is parent partial?", user.ErrInvalidName.Self().IsPartial())
+	fmt.Println("is parent modified?", user.ErrInvalidName.Unwrap())
+	fmt.Println("is parent partial?", user.ErrInvalidName.Unwrap().IsPartial())
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {

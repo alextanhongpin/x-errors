@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	debugError(user.ErrValidationErrors.SetParams(
+	debug(user.ErrValidationErrors.SetParams(
 		[]error{
 			user.ErrInvalidName.SetParams(user.InvalidNameParams{
 				Name: "john appleseed",
@@ -20,8 +20,8 @@ func main() {
 	))
 }
 
-func debugError(err error) {
-	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.Self()))
+func debug(err error) {
+	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.Unwrap()))
 
 	var custom *app.Error
 	if errors.As(err, &custom) {
@@ -34,8 +34,8 @@ func debugError(err error) {
 	localized := custom.Localize(app.MS)
 	fmt.Println("localized?", localized)
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrValidationErrors.Self())
-	fmt.Println("is parent partial?", user.ErrValidationErrors.Self().IsPartial())
+	fmt.Println("is parent modified?", user.ErrValidationErrors.Unwrap())
+	fmt.Println("is parent partial?", user.ErrValidationErrors.Unwrap().IsPartial())
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {
