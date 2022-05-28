@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/alextanhongpin/errors"
 	"golang.org/x/text/language"
@@ -46,4 +47,18 @@ func NewPartialError[T any](code string) *errors.Partial[T] {
 
 func NewFullError[T any](code string, params T) *errors.Error {
 	return NewPartialError[T](code).SetParams(params)
+}
+
+func NewFullErrorCustom[T any](code string, params T) *errors.Error {
+	return errors.NewPartial(
+		NewError(code),
+		errors.WithTemplateFunc(func(lang language.Tag, msg string, data T) (string, error) {
+			fmt.Println("template:", lang, msg, data)
+
+			msg, err := errors.Template(msg, data)
+			msg = "debug: " + msg
+
+			return msg, err
+		}),
+	).SetParams(params)
 }

@@ -11,11 +11,17 @@ import (
 
 func main() {
 	debug(user.ErrValidationErrors.SetParams(
-		[]error{
-			user.ErrInvalidName.SetParams(user.InvalidNameParams{
-				Name: "john appleseed",
-			}),
-			user.ErrInvalidAge,
+		user.ValidationErrorsParams{
+			Count: 2,
+
+			// NOTE: Not locale sensitive ...
+			PluralError: "errors",
+			Errors: []error{
+				user.ErrInvalidName.SetParams(user.InvalidNameParams{
+					Name: "john appleseed",
+				}),
+				user.ErrInvalidAge,
+			},
 		},
 	))
 }

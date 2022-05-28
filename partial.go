@@ -1,23 +1,39 @@
 package errors
 
 type Partial[T any] struct {
-	err *Error
+	err          *Error
+	templateFunc TemplateFunc[T]
 }
 
-func NewPartial[T any](err *Error) *Partial[T] {
+type PartialOption[T any] func(*Partial[T])
+
+func WithTemplateFunc[T any](fn TemplateFunc[T]) PartialOption[T] {
+	return func(p *Partial[T]) {
+		p.templateFunc = fn
+	}
+}
+
+func NewPartial[T any](err *Error, options ...PartialOption[T]) *Partial[T] {
 	e := err.clone()
 	e.partial = true
 
-	return &Partial[T]{
-		err: e,
+	p := &Partial[T]{
+		err:          e,
+		templateFunc: templateWithLanguageTag[T],
 	}
+
+	for _, opt := range options {
+		opt(p)
+	}
+
+	return p
 }
 
 func (e *Partial[T]) SetParams(params T) *Error {
 	err := e.err.clone()
 
 	for lang, msg := range e.err.translations {
-		tmsg, terr := makeTemplate(msg, params)
+		tmsg, terr := e.templateFunc(lang, msg, params)
 		if terr != nil {
 			err.translations[lang] = msg
 		} else {

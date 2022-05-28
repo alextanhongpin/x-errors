@@ -19,8 +19,8 @@
 			"ms": "Anda mestilah sekurang-kurangnya {{.MinAge}}"
 		},
 		"user.validationErrors": {
-			"en": "Create user failed",
-			"ms": "Buat pengguna gagal"
+			"en": "Create user failed, found {{.Count}} {{.PluralError}}",
+			"ms": "Buat pengguna gagal, jumpa {{.Count}} {{.PluralError}}"
 		}
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+
+	"golang.org/x/text/language"
 )
 
 var (
@@ -15,7 +17,9 @@ var (
 	ErrPartial              = errors.New("rendering incomplete error")
 )
 
-func makeTemplate(msg string, data any) (string, error) {
+type TemplateFunc[T any] func(lang language.Tag, msg string, data T) (string, error)
+
+func Template[T any](msg string, data T) (string, error) {
 	t := template.Must(template.New("").Parse(msg))
 
 	var buf bytes.Buffer
@@ -24,4 +28,8 @@ func makeTemplate(msg string, data any) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+func templateWithLanguageTag[T any](lang language.Tag, msg string, data T) (string, error) {
+	return Template(msg, data)
 }

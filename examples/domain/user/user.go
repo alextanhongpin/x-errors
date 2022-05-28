@@ -19,11 +19,11 @@ var (
 	_ = app.MustLoadError(errorCodes)
 
 	// All errors.
-	ErrNotFound         = app.NewError("user.notFound")                                 // For text-only errors without params.
-	ErrInvalidAge       = app.NewFullError("user.invalidAge", InvalidAgeParams{MaxAge}) // For errors with constant params.
-	ErrUnderAge         = app.NewFullError("user.underAge", UnderAgeParams{MinAge})     //
-	ErrInvalidName      = app.NewPartialError[InvalidNameParams]("user.invalidName")    // For errors with dynamic params.
-	ErrValidationErrors = app.NewPartialError[[]error]("user.validationErrors")         //
+	ErrNotFound         = app.NewError("user.notFound")                                        // For text-only errors without params.
+	ErrInvalidAge       = app.NewFullErrorCustom("user.invalidAge", InvalidAgeParams{MaxAge})  // For errors with constant params.
+	ErrUnderAge         = app.NewFullError("user.underAge", UnderAgeParams{MinAge})            //
+	ErrInvalidName      = app.NewPartialError[InvalidNameParams]("user.invalidName")           // For errors with dynamic params.
+	ErrValidationErrors = app.NewPartialError[ValidationErrorsParams]("user.validationErrors") //
 )
 
 type InvalidAgeParams struct {
@@ -36,4 +36,10 @@ type UnderAgeParams struct {
 
 type InvalidNameParams struct {
 	Name string `json:"name"`
+}
+
+type ValidationErrorsParams struct {
+	Count       int64   `json:"count"`
+	PluralError string  `json:"-"`
+	Errors      []error `json:"errors"`
 }
