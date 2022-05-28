@@ -13,6 +13,9 @@ var (
 	MS = language.Malay
 )
 
+// Alias to avoid referencing the original package.
+type Error = errors.Error
+
 var Errors = errors.NewBundle(&errors.Options{
 	DefaultLanguage:  EN,
 	AllowedLanguages: []language.Tag{MS},
@@ -28,3 +31,19 @@ var Errors = errors.NewBundle(&errors.Options{
 	},
 	UnmarshalFn: json.Unmarshal,
 })
+
+func MustLoadError(errorCodes []byte) bool {
+	return Errors.MustLoad(errorCodes)
+}
+
+func NewError(code string) *Error {
+	return Errors.Code(errors.Code(code))
+}
+
+func NewPartialError[T any](code string) *errors.Partial[T] {
+	return errors.NewPartial[T](NewError(code))
+}
+
+func NewFullError[T any](code string, params T) *errors.Error {
+	return NewPartialError[T](code).SetParams(params)
+}

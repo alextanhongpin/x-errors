@@ -119,5 +119,5 @@ func (b *Bundle) Code(code Code) *Error {
 		panic(fmt.Errorf("%w: %s", ErrCodeNotFound, code))
 	}
 
-	return err.Clone()
+	return err.clone()
 }
