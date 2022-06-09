@@ -12,14 +12,15 @@ type Error struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Params  any    `json:"params"`
-
-	// Stores the original template message.
-	template string
 }
 
 // Error fulfills the error interface.
 func (e Error) Error() string {
-	return exec(e.template, e.Params)
+	if e.Params != nil {
+		return exec(e.Message, e.Params)
+	}
+
+	return e.Message
 }
 
 func (e Error) String() string {
@@ -38,18 +39,29 @@ func (e Error) Is(target error) bool {
 
 func (e *Error) clone() *Error {
 	clone := *e
+
 	return &clone
 }
 
-type Partial[T any] func(t T) *Error
+type Partial[T any] struct {
+	err *Error
+}
 
-func NewPartial[T any](err *Error) func(t T) *Error {
-	return func(t T) *Error {
-		e := err.clone()
-		e.Params = t
-
-		return e
+func NewPartial[T any](err *Error) *Partial[T] {
+	return &Partial[T]{
+		err: err,
 	}
+}
+
+func (p *Partial[T]) Unwrap() *Error {
+	return p.err
+}
+
+func (p *Partial[T]) WithParams(t T) *Error {
+	err := p.err.clone()
+	err.Params = t
+
+	return err
 }
 
 func exec[T any](msg string, data T) string {

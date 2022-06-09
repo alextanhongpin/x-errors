@@ -2,11 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/alextanhongpin/errors/examples/app"
 	"github.com/alextanhongpin/errors/examples/domain/user"
+	"github.com/alextanhongpin/errors/examples/errors"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 func debug(err error) {
 	fmt.Println("is ErrInvalidAge?", errors.Is(err, user.ErrInvalidAge))
 
-	var custom *app.Error
+	var custom *errors.Error
 	if errors.As(err, &custom) {
 		fmt.Println("errors.As?", true)
 	}

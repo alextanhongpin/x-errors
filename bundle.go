@@ -67,11 +67,10 @@ func (b *Bundle) Load(errorBytes []byte) error {
 			}
 
 			b.errorByCode[code] = &Error{
-				Code:     string(code),
-				Kind:     string(kind),
-				Message:  message,
-				Params:   nil,
-				template: message,
+				Code:    string(code),
+				Kind:    string(kind),
+				Message: message,
+				Params:  nil,
 			}
 		}
 	}

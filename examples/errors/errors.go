@@ -1,13 +1,20 @@
-package app
+package errors
 
 import (
 	"encoding/json"
+	stderrors "errors"
 
 	"github.com/alextanhongpin/errors"
 )
 
 // Alias to avoid referencing the original package.
 type Error = errors.Error
+
+var (
+	Is     = stderrors.Is
+	As     = stderrors.As
+	Unwrap = stderrors.Unwrap
+)
 
 var bundle = errors.NewBundle(&errors.Options{
 	AllowedKinds: []errors.Kind{
@@ -23,18 +30,18 @@ var bundle = errors.NewBundle(&errors.Options{
 	UnmarshalFn: json.Unmarshal,
 })
 
-func MustLoadError(errorCodes []byte) bool {
+func MustLoad(errorCodes []byte) bool {
 	return bundle.MustLoad(errorCodes)
 }
 
-func NewError(code string) *Error {
+func New(code string) *Error {
 	return bundle.Code(errors.Code(code))
 }
 
-func NewPartialError[T any](code string) errors.Partial[T] {
-	return errors.NewPartial[T](NewError(code))
+func NewPartial[T any](code string) *errors.Partial[T] {
+	return errors.NewPartial[T](New(code))
 }
 
-func NewFullError[T any](code string, params T) *errors.Error {
-	return NewPartialError[T](code)(params)
+func NewFull[T any](code string, params T) *errors.Error {
+	return NewPartial[T](code).WithParams(params)
 }

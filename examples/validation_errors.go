@@ -2,22 +2,21 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/alextanhongpin/errors/examples/app"
 	"github.com/alextanhongpin/errors/examples/domain/user"
+	"github.com/alextanhongpin/errors/examples/errors"
 )
 
 func main() {
-	debug(user.ErrValidationErrors(
+	debug(user.ErrValidationErrors.WithParams(
 		user.ValidationErrorsParams{
 			Count: 2,
 
 			// NOTE: Not locale sensitive ...
 			PluralError: "errors",
 			Errors: []error{
-				user.ErrInvalidName(user.InvalidNameParams{
+				user.ErrInvalidName.WithParams(user.InvalidNameParams{
 					Name: "john appleseed",
 				}),
 				user.ErrInvalidAge,
@@ -27,9 +26,9 @@ func main() {
 }
 
 func debug(err error) {
-	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors(user.ValidationErrorsParams{})))
+	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.WithParams(user.ValidationErrorsParams{})))
 
-	var custom *app.Error
+	var custom *errors.Error
 	if errors.As(err, &custom) {
 		fmt.Println("errors.As?", true)
 	}
@@ -38,7 +37,7 @@ func debug(err error) {
 	fmt.Println("error?", custom.Error())
 
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrValidationErrors(user.ValidationErrorsParams{}))
+	fmt.Println("is parent modified?", user.ErrValidationErrors.Unwrap())
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {

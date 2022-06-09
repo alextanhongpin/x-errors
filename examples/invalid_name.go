@@ -2,15 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/alextanhongpin/errors/examples/app"
 	"github.com/alextanhongpin/errors/examples/domain/user"
+	"github.com/alextanhongpin/errors/examples/errors"
 )
 
 type ErrorWithoutParams struct {
-	*app.Error
+	*errors.Error
 }
 
 func (e *ErrorWithoutParams) MarshalJSON() ([]byte, error) {
@@ -19,7 +18,7 @@ func (e *ErrorWithoutParams) MarshalJSON() ([]byte, error) {
 	}
 
 	type response struct {
-		*app.Error
+		*errors.Error
 		Params *bool `json:"params,omitempty"`
 	}
 
@@ -27,15 +26,15 @@ func (e *ErrorWithoutParams) MarshalJSON() ([]byte, error) {
 }
 
 func main() {
-	debug(user.ErrInvalidName(user.InvalidNameParams{
+	debug(user.ErrInvalidName.WithParams(user.InvalidNameParams{
 		Name: "john appleseed",
 	}))
 }
 
 func debug(err error) {
-	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName(user.InvalidNameParams{})))
+	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.WithParams(user.InvalidNameParams{})))
 
-	var custom *app.Error
+	var custom *errors.Error
 	if errors.As(err, &custom) {
 		fmt.Println("errors.As?", true)
 	}
@@ -43,7 +42,7 @@ func debug(err error) {
 	fmt.Println("message?", custom)
 
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrInvalidName(user.InvalidNameParams{}))
+	fmt.Println("is parent modified?", user.ErrInvalidName.Unwrap())
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {

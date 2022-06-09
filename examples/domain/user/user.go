@@ -3,7 +3,7 @@ package user
 import (
 	_ "embed"
 
-	"github.com/alextanhongpin/errors/examples/app"
+	"github.com/alextanhongpin/errors/examples/errors"
 )
 
 const (
@@ -16,14 +16,14 @@ var errorCodes []byte
 
 var (
 	// Load error codes.
-	_ = app.MustLoadError(errorCodes)
+	_ = errors.MustLoad(errorCodes)
 
 	// All errors.
-	ErrNotFound         = app.NewError("user.notFound")                                        // For text-only errors without params.
-	ErrInvalidAge       = app.NewFullError("user.invalidAge", InvalidAgeParams{MaxAge})        // For errors with constant params.
-	ErrUnderAge         = app.NewFullError("user.underAge", UnderAgeParams{MinAge})            //
-	ErrInvalidName      = app.NewPartialError[InvalidNameParams]("user.invalidName")           // For errors with dynamic params.
-	ErrValidationErrors = app.NewPartialError[ValidationErrorsParams]("user.validationErrors") //
+	ErrNotFound         = errors.New("user.notFound")                                        // For text-only errors without params.
+	ErrInvalidAge       = errors.NewFull("user.invalidAge", InvalidAgeParams{MaxAge})        // For errors with constant params.
+	ErrUnderAge         = errors.NewFull("user.underAge", UnderAgeParams{MinAge})            //
+	ErrInvalidName      = errors.NewPartial[InvalidNameParams]("user.invalidName")           // For errors with dynamic params.
+	ErrValidationErrors = errors.NewPartial[ValidationErrorsParams]("user.validationErrors") //
 )
 
 type InvalidAgeParams struct {
