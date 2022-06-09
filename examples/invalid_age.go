@@ -21,22 +21,13 @@ func debug(err error) {
 		fmt.Println("errors.As?", true)
 	}
 
-	fmt.Println("is partial?", custom.IsPartial())
 	fmt.Println("message?", custom)
-
-	localized := custom.Localize(app.MS)
-	fmt.Println("localized?", localized)
-	fmt.Println("is original modified?", err)
+	fmt.Println("error?", custom.Error())
+	fmt.Println("is original modified?", user.ErrInvalidAge)
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("original json?", string(b))
-
-	b, err = json.MarshalIndent(localized, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("localized json?", string(b))
 }

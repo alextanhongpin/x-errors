@@ -27,39 +27,29 @@ func (e *ErrorWithoutParams) MarshalJSON() ([]byte, error) {
 }
 
 func main() {
-	debug(user.ErrInvalidName.SetParams(user.InvalidNameParams{
+	debug(user.ErrInvalidName(user.InvalidNameParams{
 		Name: "john appleseed",
 	}))
 }
 
 func debug(err error) {
-	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.Unwrap()))
+	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName(user.InvalidNameParams{})))
 
 	var custom *app.Error
 	if errors.As(err, &custom) {
 		fmt.Println("errors.As?", true)
 	}
 
-	fmt.Println("is partial?", custom.IsPartial())
 	fmt.Println("message?", custom)
 
-	localized := custom.Localize(app.MS)
-	fmt.Println("localized?", localized)
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrInvalidName.Unwrap())
-	fmt.Println("is parent partial?", user.ErrInvalidName.Unwrap().IsPartial())
+	fmt.Println("is parent modified?", user.ErrInvalidName(user.InvalidNameParams{}))
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("original json?", string(b))
-
-	b, err = json.MarshalIndent(localized, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("localized json?", string(b))
 
 	b, err = json.MarshalIndent(&ErrorWithoutParams{Error: custom}, "", "  ")
 	if err != nil {

@@ -10,14 +10,14 @@ import (
 )
 
 func main() {
-	debug(user.ErrValidationErrors.SetParams(
+	debug(user.ErrValidationErrors(
 		user.ValidationErrorsParams{
 			Count: 2,
 
 			// NOTE: Not locale sensitive ...
 			PluralError: "errors",
 			Errors: []error{
-				user.ErrInvalidName.SetParams(user.InvalidNameParams{
+				user.ErrInvalidName(user.InvalidNameParams{
 					Name: "john appleseed",
 				}),
 				user.ErrInvalidAge,
@@ -27,31 +27,22 @@ func main() {
 }
 
 func debug(err error) {
-	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.Unwrap()))
+	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors(user.ValidationErrorsParams{})))
 
 	var custom *app.Error
 	if errors.As(err, &custom) {
 		fmt.Println("errors.As?", true)
 	}
 
-	fmt.Println("is partial?", custom.IsPartial())
 	fmt.Println("message?", custom)
+	fmt.Println("error?", custom.Error())
 
-	localized := custom.Localize(app.MS)
-	fmt.Println("localized?", localized)
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrValidationErrors.Unwrap())
-	fmt.Println("is parent partial?", user.ErrValidationErrors.Unwrap().IsPartial())
+	fmt.Println("is parent modified?", user.ErrValidationErrors(user.ValidationErrorsParams{}))
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("original json?", string(b))
-
-	b, err = json.MarshalIndent(localized, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("localized json?", string(b))
 }
