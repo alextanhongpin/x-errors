@@ -8,6 +8,8 @@ import (
 	"github.com/alextanhongpin/errors/examples/errors"
 )
 
+var ErrCreateUserInvalidName = user.ErrInvalidName.WithTag(errors.T("op", "CreateUser"))
+
 type ErrorWithoutParams struct {
 	*errors.Error
 }
@@ -32,6 +34,17 @@ func main() {
 }
 
 func debug(err error) {
+	{
+		err := createUser()
+		var custom *errors.Error
+		if errors.As(err, &custom) {
+			fmt.Println("errors.As?", true)
+		}
+		fmt.Printf("%#v\n", custom)
+
+		fmt.Println(errors.Is(err, user.ErrInvalidName.WithParams(user.InvalidNameParams{})))
+	}
+
 	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.WithParams(user.InvalidNameParams{})))
 
 	var custom *errors.Error
@@ -55,4 +68,8 @@ func debug(err error) {
 		panic(err)
 	}
 	fmt.Println("stripped params?", string(b))
+}
+
+func createUser() error {
+	return ErrCreateUserInvalidName.WithParams(user.InvalidNameParams{Name: "jhn"})
 }

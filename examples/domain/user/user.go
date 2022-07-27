@@ -19,11 +19,13 @@ var (
 	_ = errors.MustLoad(errorCodes)
 
 	// All errors.
-	ErrNotFound         = errors.New("user.notFound")                                        // For text-only errors without params.
+	ErrNotFound         = errors.New("user.notFound") // For text-only errors without params.
+	ErrAlreadyExists    = errors.New("user.alreadyExists")
 	ErrInvalidAge       = errors.NewFull("user.invalidAge", InvalidAgeParams{MaxAge})        // For errors with constant params.
 	ErrUnderAge         = errors.NewFull("user.underAge", UnderAgeParams{MinAge})            //
 	ErrInvalidName      = errors.NewPartial[InvalidNameParams]("user.invalidName")           // For errors with dynamic params.
 	ErrValidationErrors = errors.NewPartial[ValidationErrorsParams]("user.validationErrors") //
+
 )
 
 type InvalidAgeParams struct {

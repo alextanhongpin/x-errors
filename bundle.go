@@ -71,6 +71,7 @@ func (b *Bundle) Load(errorBytes []byte) error {
 				Kind:    string(kind),
 				Message: message,
 				Params:  nil,
+				Tags:    nil,
 			}
 		}
 	}
@@ -86,11 +87,15 @@ func (b *Bundle) MustLoad(errorBytes []byte) bool {
 	return true
 }
 
-func (b *Bundle) Code(code Code) *Error {
+type Tag struct {
+	Key, Value string
+}
+
+func (b *Bundle) Code(code Code, tags ...Tag) *Error {
 	err, ok := b.errorByCode[code]
 	if !ok {
 		panic(fmt.Errorf("%w: %s", ErrCodeNotFound, code))
 	}
 
-	return err.clone()
+	return err.WithTag(tags...)
 }

@@ -1,6 +1,7 @@
 {
 	"not_found": {
-		"user.notFound": "User not found"
+		"user.notFound": "User not found",
+		"user.alreadyExists": "User already exists"
 	},
 	"bad_input": {
 		"user.invalidName": "Name cannot contain special characters: {{.Name}}",
