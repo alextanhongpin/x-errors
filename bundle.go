@@ -87,9 +87,7 @@ func (b *Bundle) MustLoad(errorBytes []byte) bool {
 	return true
 }
 
-type Tag struct {
-	Key, Value string
-}
+type Tag [2]string
 
 func (b *Bundle) Code(code Code, tags ...Tag) *Error {
 	err, ok := b.errorByCode[code]

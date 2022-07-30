@@ -24,7 +24,7 @@ func (t Tags) Has(key string) bool {
 
 func (t Tags) Clone() Tags {
 	if t.IsZero() {
-		return t
+		return nil
 	}
 
 	res := make(Tags)
@@ -82,7 +82,7 @@ func (e *Error) WithTag(tags ...Tag) *Error {
 	}
 
 	for _, tag := range tags {
-		err.Tags[tag.Key] = tag.Value
+		err.Tags[tag[0]] = tag[1]
 	}
 
 	return err
