@@ -3,6 +3,7 @@ package errors
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"html/template"
 )
 
@@ -104,6 +105,18 @@ func (p *PartialError[T]) WithParams(t T) *Error {
 
 func (p *PartialError[T]) WithTag(tags ...Tag) *Error {
 	return p.err.WithTag(tags...)
+}
+
+func Wrap(err *Error, cause error) error {
+	var target *Error
+	if errors.As(cause, &target) {
+		err = err.WithTag()
+		// When wrapping an existing error, the tags comes first.
+		// Logically, the order of tags shouldn't matter.
+		err.Tags = append(target.Tags, err.Tags...)
+	}
+
+	return fmt.Errorf("%w: %v", err, cause)
 }
 
 func exec[T any](msg string, data T) string {
