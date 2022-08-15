@@ -10,13 +10,8 @@ import (
 // Alias to avoid referencing the original package.
 type (
 	Error = errors.Error
-	Tags  = errors.Tags
 	Tag   = errors.Tag
 )
-
-func T(key, value string) Tag {
-	return Tag{Key: key, Value: value}
-}
 
 var (
 	Is     = stderrors.Is
@@ -53,14 +48,14 @@ func MustLoad(errorCodes []byte) bool {
 	return bundle.MustLoad(errorCodes)
 }
 
-func New(code string, tags ...Tag) *Error {
-	return bundle.Code(errors.Code(code), tags...)
+func New(code string) *Error {
+	return bundle.Get(errors.Code(code))
 }
 
-func NewPartial[T any](code string, tags ...Tag) *errors.Partial[T] {
-	return errors.NewPartial[T](New(code, tags...))
+func NewPartial[T any](code string) *errors.PartialError[T] {
+	return errors.ToPartial[T](New(code))
 }
 
-func NewFull[T any](code string, params T, tags ...Tag) *errors.Error {
-	return NewPartial[T](code, tags...).WithParams(params)
+func NewFull[T any](code string, params T) *errors.Error {
+	return NewPartial[T](code).WithParams(params)
 }

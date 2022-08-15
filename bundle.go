@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// Errors
 var (
 	ErrInvalidKind   = errors.New("errors: kind is invalid")
 	ErrCodeNotFound  = errors.New("errors: error code not found")
@@ -57,13 +58,13 @@ func (b *Bundle) Load(errorBytes []byte) error {
 	}
 
 	for kind, messageByCode := range data {
-		if !b.allowedKinds[kind] {
-			return fmt.Errorf("%w: %s", ErrInvalidKind, kind)
+		if err := b.validateKindExists(kind); err != nil {
+			return err
 		}
 
 		for code, message := range messageByCode {
-			if _, ok := b.errorByCode[code]; ok {
-				return fmt.Errorf("%w: %s", ErrDuplicateCode, code)
+			if err := b.validateCodeUnique(code); err != nil {
+				return err
 			}
 
 			b.errorByCode[code] = &Error{
@@ -87,13 +88,52 @@ func (b *Bundle) MustLoad(errorBytes []byte) bool {
 	return true
 }
 
-type Tag [2]string
-
-func (b *Bundle) Code(code Code, tags ...Tag) *Error {
-	err, ok := b.errorByCode[code]
-	if !ok {
-		panic(fmt.Errorf("%w: %s", ErrCodeNotFound, code))
+func (b *Bundle) Add(kind Kind, code Code, message string, tags ...Tag) *Error {
+	if err := b.validateCodeUnique(code); err != nil {
+		panic(fmt.Errorf("%w: %s", ErrDuplicateCode, code))
 	}
 
-	return err.WithTag(tags...)
+	err := &Error{
+		Code:    string(code),
+		Kind:    string(kind),
+		Message: message,
+		Params:  nil,
+		Tags:    tags,
+	}
+
+	b.errorByCode[code] = err
+
+	return err
+}
+
+func (b *Bundle) Get(code Code) *Error {
+	if err := b.validateCodeExists(code); err != nil {
+		panic(err)
+	}
+
+	return b.errorByCode[code]
+}
+
+func (b *Bundle) validateCodeExists(code Code) error {
+	if _, found := b.errorByCode[code]; !found {
+		return fmt.Errorf("%w: %s", ErrCodeNotFound, code)
+	}
+
+	return nil
+}
+
+func (b *Bundle) validateCodeUnique(code Code) error {
+	if _, found := b.errorByCode[code]; found {
+		return fmt.Errorf("%w: %s", ErrDuplicateCode, code)
+	}
+
+	return nil
+}
+
+func (b *Bundle) validateKindExists(kind Kind) error {
+	if b.allowedKinds[kind] {
+		return nil
+	}
+
+	return fmt.Errorf("%w: %s", ErrInvalidKind, kind)
 }

@@ -26,7 +26,7 @@ func main() {
 }
 
 func debug(err error) {
-	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.WithParams(user.ValidationErrorsParams{})))
+	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.Unwrap()))
 
 	var custom *errors.Error
 	if errors.As(err, &custom) {

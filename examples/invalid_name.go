@@ -8,7 +8,7 @@ import (
 	"github.com/alextanhongpin/errors/examples/errors"
 )
 
-var ErrCreateUserInvalidName = user.ErrInvalidName.WithTag(errors.T("op", "CreateUser"))
+var ErrCreateUserInvalidName = user.ErrInvalidName.WithTag("op:create_user")
 
 type ErrorWithoutParams struct {
 	*errors.Error
@@ -42,10 +42,10 @@ func debug(err error) {
 		}
 		fmt.Printf("%#v\n", custom)
 
-		fmt.Println(errors.Is(err, user.ErrInvalidName.WithParams(user.InvalidNameParams{})))
+		fmt.Println(errors.Is(err, user.ErrInvalidName.Unwrap()))
 	}
 
-	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.WithParams(user.InvalidNameParams{})))
+	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.Unwrap()))
 
 	var custom *errors.Error
 	if errors.As(err, &custom) {

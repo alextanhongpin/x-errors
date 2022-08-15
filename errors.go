@@ -6,32 +6,27 @@ import (
 	"html/template"
 )
 
-type Tags map[string]string
+type Tag string
+
+type Tags []Tag
 
 func (t Tags) IsZero() bool {
-	return t != nil
+	return len(t) == 0
 }
 
-func (t Tags) Has(key string) bool {
-	if t.IsZero() {
-		return false
+func (tags Tags) Has(tag string) bool {
+	for _, t := range tags {
+		if t == Tag(tag) {
+			return true
+		}
 	}
 
-	_, ok := t[key]
-
-	return ok
+	return false
 }
 
-func (t Tags) Clone() Tags {
-	if t.IsZero() {
-		return nil
-	}
-
-	res := make(Tags)
-
-	for k, v := range t {
-		res[k] = v
-	}
+func (t Tags) Copy() Tags {
+	res := make(Tags, len(t))
+	copy(res, t)
 
 	return res
 }
@@ -65,73 +60,50 @@ func (e Error) Is(target error) bool {
 		return false
 	}
 
-	return err.Kind == e.Kind && err.Code == e.Code
+	return err.Code == e.Code
 }
 
 func (e *Error) WithParams(params any) *Error {
-	err := e.Clone()
+	err := e.Copy()
 	err.Params = params
 
 	return err
 }
 
 func (e *Error) WithTag(tags ...Tag) *Error {
-	err := e.Clone()
-	if err.Tags == nil {
-		err.Tags = make(Tags)
-	}
-
-	for _, tag := range tags {
-		err.Tags[tag[0]] = tag[1]
-	}
+	err := e.Copy()
+	err.Tags = append(err.Tags, tags...)
 
 	return err
 }
 
-func (e *Error) WithTags(tags Tags) *Error {
-	err := e.Clone()
-	if err.Tags == nil {
-		err.Tags = make(Tags)
-	}
+func (e *Error) Copy() *Error {
+	err := *e
+	err.Tags = e.Tags.Copy()
 
-	for k, v := range tags {
-		err.Tags[k] = v
-	}
-
-	return err
+	return &err
 }
 
-func (e *Error) Clone() *Error {
-	clone := *e
-	clone.Tags = e.Tags.Clone()
-
-	return &clone
-}
-
-type Partial[T any] struct {
+type PartialError[T any] struct {
 	err *Error
 }
 
-func NewPartial[T any](err *Error) *Partial[T] {
-	return &Partial[T]{
+func ToPartial[T any](err *Error) *PartialError[T] {
+	return &PartialError[T]{
 		err: err,
 	}
 }
 
-func (p *Partial[T]) Unwrap() *Error {
+func (p *PartialError[T]) Unwrap() *Error {
 	return p.err
 }
 
-func (p *Partial[T]) WithParams(t T) *Error {
+func (p *PartialError[T]) WithParams(t T) *Error {
 	return p.err.WithParams(t)
 }
 
-func (p *Partial[T]) WithTag(tags ...Tag) *Error {
+func (p *PartialError[T]) WithTag(tags ...Tag) *Error {
 	return p.err.WithTag(tags...)
-}
-
-func (p *Partial[T]) WithTags(tags Tags) *Error {
-	return p.err.WithTags(tags)
 }
 
 func exec[T any](msg string, data T) string {

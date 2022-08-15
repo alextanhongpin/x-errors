@@ -6,26 +6,25 @@ import (
 	"github.com/alextanhongpin/errors"
 )
 
-func TestTags(t *testing.T) {
-	tags := make(errors.Tags)
-	tags["op"] = "findUser"
+func TestTagsImmutable(t *testing.T) {
 
-	err := errors.Error{
+	parent := errors.Error{
 		Code:    "CodeNotFound",
 		Kind:    "NotFound",
 		Message: "Not found",
 		Params:  nil,
-		Tags:    tags,
+		Tags:    nil,
 	}
 
-	clone := err.WithTag(errors.Tag{"op", "edited"})
-	tags["op"] = "FindUser"
+	child := parent.WithTag("repo.FindUser")
 
-	if exp, got := "FindUser", err.Tags["op"]; exp != got {
-		t.Fatalf("expected parent to be %s, got %s", exp, got)
+	if exp, got := int(0), len(parent.Tags); exp != got {
+		t.Fatalf("expected parent tags length to be %d, got %d", exp, got)
 	}
+	t.Logf("parent: %v", parent.Tags)
 
-	if exp, got := "edited", clone.Tags["op"]; exp != got {
-		t.Fatalf("expected parent to be %s, got %s", exp, got)
+	if exp, got := int(1), len(child.Tags); exp != got {
+		t.Fatalf("expected parent to be %d, got %d", exp, got)
 	}
+	t.Logf("child: %v", child.Tags)
 }

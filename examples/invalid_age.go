@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrCreateUserAlreadyExists = user.ErrAlreadyExists.WithTag(errors.T("op", "CreateUser"))
-	ErrUpdateUserAlreadyExists = user.ErrAlreadyExists.WithTag(errors.T("op", "UpdateUser"))
+	ErrCreateUserAlreadyExists = user.ErrAlreadyExists.WithTag("op:create_user")
+	ErrUpdateUserAlreadyExists = user.ErrAlreadyExists.WithTag("op:update_user")
 )
 
 func main() {
