@@ -52,5 +52,6 @@ func TestWrapError(t *testing.T) {
 		t.Fatalf("expected length to be %d, got %d", exp, got)
 	}
 
+	t.Logf("error: %v", result)
 	t.Logf("target: %#v", target)
 }
