@@ -3,7 +3,6 @@ package errors
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
 )
 
@@ -37,8 +36,9 @@ type Error struct {
 	Kind    string `json:"kind"`
 	Code    string `json:"code"`
 	Message string `json:"message"`
-	Params  any    `json:"params"`
+	Params  any    `json:"params,omitempty"`
 	Tags    Tags   `json:"tags,omitempty"`
+	Cause   error  `json:"cause,omitempty"`
 }
 
 // Error fulfills the error interface.
@@ -62,6 +62,21 @@ func (e Error) Is(target error) bool {
 	}
 
 	return err.Code == e.Code
+}
+
+func (e *Error) Unwrap() error {
+	return e.Cause
+}
+
+func (e *Error) Wrap(cause error) *Error {
+	if cause == nil {
+		return e
+	}
+
+	err := e.Copy()
+	err.Cause = cause
+
+	return err
 }
 
 func (e *Error) WithParams(params any) *Error {
@@ -122,11 +137,7 @@ func Wrap(err *Error, cause error) error {
 		err.Tags = append(target.Tags, err.Tags...)
 	}
 
-	if cause == nil {
-		return fmt.Errorf("%w", err)
-	}
-
-	return fmt.Errorf("%w: %v", err, cause)
+	return err.Wrap(cause)
 }
 
 func exec[T any](msg string, data T) string {

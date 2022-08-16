@@ -7,6 +7,8 @@ import (
 	"github.com/alextanhongpin/errors"
 )
 
+var ErrTest = stderrors.New("test")
+
 func TestTagsImmutable(t *testing.T) {
 	parent := errors.Error{
 		Code:    "user.NotFound",
@@ -50,6 +52,10 @@ func TestWrapError(t *testing.T) {
 
 	if exp, got := int(2), len(target.Tags); exp != got {
 		t.Fatalf("expected length to be %d, got %d", exp, got)
+	}
+
+	if exp, got := true, stderrors.Is(stderrors.Unwrap(err.Wrap(ErrTest)), ErrTest); exp != got {
+		t.Fatal("expected error to be ErrTest")
 	}
 
 	t.Logf("error: %v", result)
