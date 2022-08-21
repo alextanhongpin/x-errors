@@ -122,24 +122,6 @@ func (p *PartialError[T]) WithTag(tags ...Tag) *Error {
 	return p.err.WithTag(tags...)
 }
 
-func Wrap(err *Error, cause error) error {
-	var target *Error
-	if errors.As(cause, &target) {
-		// When the errors are identical (due to inheritance),
-		// we unwrap the actual cause and pass it to the new error.
-		if errors.Is(err, cause) {
-			cause = errors.Unwrap(cause)
-		}
-
-		err = err.WithTag()
-		// When wrapping an existing error, the tags comes first.
-		// Logically, the order of tags shouldn't matter.
-		err.Tags = append(target.Tags, err.Tags...)
-	}
-
-	return err.Wrap(cause)
-}
-
 func exec[T any](msg string, data T) string {
 	t := template.Must(template.New("").Parse(msg))
 
