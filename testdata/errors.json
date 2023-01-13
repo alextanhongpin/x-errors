@@ -1,0 +1,6 @@
+{
+	"not_found": {
+		"user.notFound": "User not found",
+		"user.alreadyExists": "User already exists"
+	}
+}

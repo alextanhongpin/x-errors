@@ -55,7 +55,7 @@ func (e Error) String() string {
 }
 
 // Is satisfies the error interface.
-func (e Error) Is(target error) bool {
+func (e *Error) Is(target error) bool {
 	var err *Error
 	if !errors.As(target, &err) {
 		return false
@@ -118,8 +118,8 @@ func (p *PartialError[T]) WithParams(t T) *Error {
 	return p.err.WithParams(t)
 }
 
-func (p *PartialError[T]) WithTag(tags ...Tag) *Error {
-	return p.err.WithTag(tags...)
+func (p *PartialError[T]) WithTag(tags ...Tag) *PartialError[T] {
+	return ToPartial[T](p.err.WithTag(tags...))
 }
 
 func exec[T any](msg string, data T) string {

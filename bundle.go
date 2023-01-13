@@ -1,9 +1,11 @@
 package errors
 
 import (
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 )
 
 // Errors
@@ -11,6 +13,21 @@ var (
 	ErrInvalidKind   = errors.New("errors: kind is invalid")
 	ErrCodeNotFound  = errors.New("errors: error code not found")
 	ErrDuplicateCode = errors.New("errors: duplicate error code")
+)
+
+var (
+	// Default bundle.
+	bundle         = NewBundle(nil)
+	Get            = bundle.Get
+	Add            = bundle.Add
+	AddKinds       = bundle.AddKinds
+	SetUnmarshalFn = bundle.SetUnmarshalFn
+	Len            = bundle.Len
+	Load           = bundle.Load
+	Iter           = bundle.Iter
+	MustLoad       = bundle.MustLoad
+	LoadFS         = bundle.LoadFS
+	MustLoadFS     = bundle.MustLoadFS
 )
 
 type Code string
@@ -51,6 +68,38 @@ func NewBundle(opt *Options) *Bundle {
 	}
 }
 
+func (b *Bundle) AddKinds(kinds ...Kind) error {
+	for _, k := range kinds {
+		b.allowedKinds[k] = true
+	}
+
+	return b.Iter(func(code Code, err *Error) error {
+		if e := b.validateKindExists(Kind(err.Kind)); e != nil {
+			return e
+		}
+
+		return nil
+	})
+}
+
+func (b *Bundle) SetUnmarshalFn(unmarshalFn func(raw []byte, v any) error) {
+	b.unmarshalFn = unmarshalFn
+}
+
+func (b *Bundle) Len() int {
+	return len(b.errorByCode)
+}
+
+func (b *Bundle) Iter(fn func(code Code, err *Error) error) error {
+	for code, err := range b.errorByCode {
+		if e := fn(code, err); e != nil {
+			return e
+		}
+	}
+
+	return nil
+}
+
 func (b *Bundle) Load(errorBytes []byte) error {
 	var data map[Kind]map[Code]string
 	if err := b.unmarshalFn(errorBytes, &data); err != nil {
@@ -82,6 +131,49 @@ func (b *Bundle) Load(errorBytes []byte) error {
 
 func (b *Bundle) MustLoad(errorBytes []byte) bool {
 	if err := b.Load(errorBytes); err != nil {
+		panic(err)
+	}
+
+	return true
+}
+
+func (b *Bundle) LoadFS(fs embed.FS) error {
+	dirs := []string{"."}
+	for len(dirs) > 0 {
+		var dir string
+		dir, dirs = dirs[0], dirs[1:]
+
+		entries, err := fs.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+
+		for _, entry := range entries {
+			info, err := entry.Info()
+			if err != nil {
+				return err
+			}
+
+			dir := filepath.Join(dir, info.Name())
+			if info.IsDir() {
+				dirs = append(dirs, dir)
+				continue
+			}
+
+			by, err := fs.ReadFile(dir)
+			if err != nil {
+				return err
+			}
+			if err := b.Load(by); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (b *Bundle) MustLoadFS(fs embed.FS) bool {
+	if err := b.LoadFS(fs); err != nil {
 		panic(err)
 	}
 
@@ -131,7 +223,9 @@ func (b *Bundle) validateCodeUnique(code Code) error {
 }
 
 func (b *Bundle) validateKindExists(kind Kind) error {
-	if b.allowedKinds[kind] {
+	// NOTE: If we do not set allowed kinds, by default all
+	// is allowed.
+	if len(b.allowedKinds) == 0 || b.allowedKinds[kind] {
 		return nil
 	}
 
