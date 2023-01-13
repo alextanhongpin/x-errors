@@ -111,4 +111,19 @@ func TestDefaultBundle(t *testing.T) {
 	if err := errors.Get(errors.Code("user.invalidName")); err == nil {
 		t.Fatalf("expected error user.invalidName to be loaded, got nil")
 	}
+
+	t.Run("marshal", func(t *testing.T) {
+		type userInvalidNameError struct {
+			Name string
+		}
+
+		errRes := errors.ToPartial[userInvalidNameError](errors.Get("user.invalidName")).WithParams(userInvalidNameError{
+			Name: "john",
+		})
+		b, err := json.Marshal(errRes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s", b)
+	})
 }

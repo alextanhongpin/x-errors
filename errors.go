@@ -2,6 +2,7 @@ package errors
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"html/template"
 )
@@ -98,6 +99,26 @@ func (e *Error) Copy() *Error {
 	err.Tags = e.Tags.Copy()
 
 	return &err
+}
+
+func (e *Error) MarshalJSON() ([]byte, error) {
+	type errorResponse struct {
+		Kind    string `json:"kind"`
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Params  any    `json:"params,omitempty"`
+		Tags    Tags   `json:"tags,omitempty"`
+	}
+
+	res := errorResponse{
+		Kind:    e.Kind,
+		Code:    e.Code,
+		Message: e.Error(), // The message returned should be formatted
+		Params:  e.Params,
+		Tags:    e.Tags,
+	}
+
+	return json.Marshal(res)
 }
 
 type PartialError[T any] struct {
