@@ -2,6 +2,7 @@ package errors_test
 
 import (
 	"embed"
+	"encoding/json"
 	stderrors "errors"
 	"fmt"
 	"testing"
@@ -75,8 +76,8 @@ func TestWrapError(t *testing.T) {
 }
 
 func TestEmbed(t *testing.T) {
-	bundle := errors.NewBundle(nil)
-	if !bundle.MustLoadFS(errorFiles) {
+	bundle := errors.NewBundle()
+	if !bundle.MustLoadFS(errorFiles, json.Unmarshal) {
 		t.Fatal("failed to load error bundle")
 	}
 
@@ -94,7 +95,7 @@ func TestEmbed(t *testing.T) {
 }
 
 func TestDefaultBundle(t *testing.T) {
-	errors.MustLoadFS(errorFiles)
+	errors.MustLoadFS(errorFiles, json.Unmarshal)
 	if err := errors.AddKinds("not_found", "bad_input"); err != nil {
 		t.Fatalf("expected set kinds to return nil, got %v", err)
 	}

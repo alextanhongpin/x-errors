@@ -2,7 +2,6 @@ package errors
 
 import (
 	"embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -17,55 +16,33 @@ var (
 
 var (
 	// Default bundle.
-	bundle         = NewBundle(nil)
-	Get            = bundle.Get
-	Add            = bundle.Add
-	AddKinds       = bundle.AddKinds
-	MustAddKinds   = bundle.MustAddKinds
-	SetUnmarshalFn = bundle.SetUnmarshalFn
-	Len            = bundle.Len
-	Load           = bundle.Load
-	Iter           = bundle.Iter
-	MustLoad       = bundle.MustLoad
-	LoadFS         = bundle.LoadFS
-	MustLoadFS     = bundle.MustLoadFS
+	bundle       = NewBundle()
+	Get          = bundle.Get
+	Add          = bundle.Add
+	AddKinds     = bundle.AddKinds
+	MustAddKinds = bundle.MustAddKinds
+	Len          = bundle.Len
+	Load         = bundle.Load
+	Iter         = bundle.Iter
+	MustLoad     = bundle.MustLoad
+	LoadFS       = bundle.LoadFS
+	MustLoadFS   = bundle.MustLoadFS
 )
 
 type Code string
 type Kind string
 
+type unmarshalFn func(raw []byte, v any) error
+
 type Bundle struct {
 	errorByCode  map[Code]*Error
 	allowedKinds map[Kind]bool
-	unmarshalFn  func(raw []byte, v any) error
 }
 
-type Options struct {
-	AllowedKinds []Kind
-	UnmarshalFn  func([]byte, any) error
-}
-
-func NewBundle(opt *Options) *Bundle {
-	if opt == nil {
-		opt = &Options{
-			UnmarshalFn:  json.Unmarshal,
-			AllowedKinds: make([]Kind, 0),
-		}
-	}
-
-	if opt.UnmarshalFn == nil {
-		opt.UnmarshalFn = json.Unmarshal
-	}
-
-	allowedKinds := make(map[Kind]bool)
-	for _, kind := range opt.AllowedKinds {
-		allowedKinds[kind] = true
-	}
-
+func NewBundle() *Bundle {
 	return &Bundle{
-		allowedKinds: allowedKinds,
 		errorByCode:  make(map[Code]*Error),
-		unmarshalFn:  opt.UnmarshalFn,
+		allowedKinds: make(map[Kind]bool),
 	}
 }
 
@@ -91,13 +68,6 @@ func (b *Bundle) MustAddKinds(kinds ...Kind) bool {
 	return true
 }
 
-// SetUnmarshalFn sets the unmarshal function and returns true to allow
-// variable initialization.
-func (b *Bundle) SetUnmarshalFn(unmarshalFn func(raw []byte, v any) error) bool {
-	b.unmarshalFn = unmarshalFn
-	return true
-}
-
 func (b *Bundle) Len() int {
 	return len(b.errorByCode)
 }
@@ -112,9 +82,9 @@ func (b *Bundle) Iter(fn func(code Code, err *Error) error) error {
 	return nil
 }
 
-func (b *Bundle) Load(errorBytes []byte) error {
+func (b *Bundle) Load(errorBytes []byte, unmarshal unmarshalFn) error {
 	var data map[Kind]map[Code]string
-	if err := b.unmarshalFn(errorBytes, &data); err != nil {
+	if err := unmarshal(errorBytes, &data); err != nil {
 		return err
 	}
 
@@ -141,15 +111,15 @@ func (b *Bundle) Load(errorBytes []byte) error {
 	return nil
 }
 
-func (b *Bundle) MustLoad(errorBytes []byte) bool {
-	if err := b.Load(errorBytes); err != nil {
+func (b *Bundle) MustLoad(errorBytes []byte, unmarshal unmarshalFn) bool {
+	if err := b.Load(errorBytes, unmarshal); err != nil {
 		panic(err)
 	}
 
 	return true
 }
 
-func (b *Bundle) LoadFS(fs embed.FS) error {
+func (b *Bundle) LoadFS(fs embed.FS, unmarshal unmarshalFn) error {
 	dirs := []string{"."}
 	for len(dirs) > 0 {
 		var dir string
@@ -176,7 +146,8 @@ func (b *Bundle) LoadFS(fs embed.FS) error {
 			if err != nil {
 				return err
 			}
-			if err := b.Load(by); err != nil {
+
+			if err := b.Load(by, unmarshal); err != nil {
 				return err
 			}
 		}
@@ -184,8 +155,8 @@ func (b *Bundle) LoadFS(fs embed.FS) error {
 	return nil
 }
 
-func (b *Bundle) MustLoadFS(fs embed.FS) bool {
-	if err := b.LoadFS(fs); err != nil {
+func (b *Bundle) MustLoadFS(fs embed.FS, unmarshal unmarshalFn) bool {
+	if err := b.LoadFS(fs, unmarshal); err != nil {
 		panic(err)
 	}
 
