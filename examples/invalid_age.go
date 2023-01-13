@@ -16,6 +16,7 @@ var (
 
 func main() {
 	debug(user.ErrInvalidAge)
+	debug(user.UnderAgeError())
 }
 
 func debug(err error) {
@@ -66,7 +67,7 @@ func debug(err error) {
 			fmt.Printf("%d is valid\n", i)
 		}
 	}
-
+	fmt.Println()
 }
 
 func createUser() error {

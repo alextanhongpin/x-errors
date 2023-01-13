@@ -8,8 +8,6 @@ import (
 	"github.com/alextanhongpin/errors/examples/errors"
 )
 
-var ErrCreateUserInvalidName = user.ErrInvalidName.WithTag("op:create_user")
-
 type ErrorWithoutParams struct {
 	*errors.Error
 }
@@ -20,16 +18,21 @@ func (e *ErrorWithoutParams) MarshalJSON() ([]byte, error) {
 	}
 
 	type response struct {
-		*errors.Error
-		Params *bool `json:"params,omitempty"`
+		Kind    string `json:"kind"`
+		Code    string `json:"code"`
+		Message string `json:"message"`
 	}
 
-	return json.Marshal(response{Error: e.Error})
+	return json.Marshal(response{
+		Kind:    e.Kind,
+		Code:    e.Code,
+		Message: e.Error.Error(),
+	})
 }
 
 func main() {
-	debug(user.ErrInvalidName.WithParams(user.InvalidNameParams{
-		Name: "john appleseed",
+	debug(user.ErrInvalidName.WithParams(map[string]string{
+		"Name": "alice",
 	}))
 }
 
@@ -42,10 +45,10 @@ func debug(err error) {
 		}
 		fmt.Printf("%#v\n", custom)
 
-		fmt.Println(errors.Is(err, user.ErrInvalidName.Unwrap()))
+		fmt.Println(errors.Is(err, user.ErrInvalidName))
 	}
 
-	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName.Unwrap()))
+	fmt.Println("is ErrInvalidName?", errors.Is(err, user.ErrInvalidName))
 
 	var custom *errors.Error
 	if errors.As(err, &custom) {
@@ -55,7 +58,7 @@ func debug(err error) {
 	fmt.Println("message?", custom)
 
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrInvalidName.Unwrap())
+	fmt.Println("is parent modified?", user.ErrInvalidName)
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {
@@ -68,8 +71,9 @@ func debug(err error) {
 		panic(err)
 	}
 	fmt.Println("stripped params?", string(b))
+	fmt.Println()
 }
 
 func createUser() error {
-	return ErrCreateUserInvalidName.WithParams(user.InvalidNameParams{Name: "jhn"})
+	return user.InvalidNameError("john", "op:create_user")
 }

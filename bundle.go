@@ -163,7 +163,7 @@ func (b *Bundle) MustLoadFS(fs embed.FS, unmarshal unmarshalFn) bool {
 	return true
 }
 
-func (b *Bundle) Add(kind Kind, code Code, message string, tags ...Tag) *Error {
+func (b *Bundle) Add(kind Kind, code Code, message string, tags ...string) *Error {
 	if err := b.validateCodeUnique(code); err != nil {
 		panic(fmt.Errorf("%w: %s", ErrDuplicateCode, code))
 	}

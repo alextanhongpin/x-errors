@@ -2,6 +2,7 @@ package user
 
 import (
 	_ "embed"
+	"encoding/json"
 
 	"github.com/alextanhongpin/errors/examples/errors"
 )
@@ -16,32 +17,64 @@ var errorCodes []byte
 
 var (
 	// Load error codes.
-	_ = errors.MustLoad(errorCodes)
+	_ = errors.MustLoad(errorCodes, json.Unmarshal)
 
 	// All errors.
-	ErrNotFound         = errors.New("user.notFound") // For text-only errors without params.
-	ErrAlreadyExists    = errors.New("user.alreadyExists")
-	ErrInvalidAge       = errors.NewFull("user.invalidAge", InvalidAgeParams{MaxAge})        // For errors with constant params.
-	ErrUnderAge         = errors.NewFull("user.underAge", UnderAgeParams{MinAge})            //
-	ErrInvalidName      = errors.NewPartial[InvalidNameParams]("user.invalidName")           // For errors with dynamic params.
-	ErrValidationErrors = errors.NewPartial[ValidationErrorsParams]("user.validationErrors") //
+	ErrNotFound         = errors.Get("user.notFound") // For text-only errors without params.
+	ErrAlreadyExists    = errors.Get("user.alreadyExists")
+	ErrInvalidAge       = errors.Get("user.invalidAge")       // For errors with constant params.
+	ErrUnderAge         = errors.Get("user.underAge")         //
+	ErrInvalidName      = errors.Get("user.invalidName")      // For errors with dynamic params.
+	ErrValidationErrors = errors.Get("user.validationErrors") //
 
 )
 
-type InvalidAgeParams struct {
-	MaxAge int64 `json:"maxAge"`
+func InvalidAgeError() error {
+	type params struct {
+		MaxAge int64 `json:"maxAge"`
+	}
+	return errors.ToPartial[params](ErrInvalidAge).WithParams(params{
+		MaxAge: MaxAge,
+	})
 }
 
-type UnderAgeParams struct {
-	MinAge int64 `json:"minAge"`
+func UnderAgeError() error {
+	type params struct {
+		MinAge int64 `json:"minAge"`
+	}
+	return errors.ToPartial[params](ErrUnderAge).WithParams(params{
+		MinAge: MinAge,
+	})
 }
 
-type InvalidNameParams struct {
-	Name string `json:"name"`
+func InvalidNameError(name string, tags ...string) error {
+	type params struct {
+		Name string `json:"name"`
+	}
+	return errors.ToPartial[params](ErrInvalidName).
+		WithParams(params{
+			Name: name,
+		}).
+		WithTag(tags...)
 }
 
-type ValidationErrorsParams struct {
-	Count       int64   `json:"count"`
-	PluralError string  `json:"-"`
-	Errors      []error `json:"errors"`
+func ValidationErrors(errs []error) error {
+	type params struct {
+		Count       int     `json:"count"`
+		PluralError string  `json:"-"`
+		Errors      []error `json:"errors"`
+	}
+	count := len(errs)
+	var pluralError string
+	if count == 1 {
+		pluralError = "error"
+	} else {
+		pluralError = "errors"
+	}
+	return errors.ToPartial[params](ErrValidationErrors).WithParams(params{
+		Count:       count,
+		PluralError: pluralError,
+		Errors:      errs,
+	})
+
 }

@@ -9,24 +9,11 @@ import (
 )
 
 func main() {
-	debug(user.ErrValidationErrors.WithParams(
-		user.ValidationErrorsParams{
-			Count: 2,
-
-			// NOTE: Not locale sensitive ...
-			PluralError: "errors",
-			Errors: []error{
-				user.ErrInvalidName.WithParams(user.InvalidNameParams{
-					Name: "john appleseed",
-				}),
-				user.ErrInvalidAge,
-			},
-		},
-	))
+	debug(user.ValidationErrors([]error{user.InvalidNameError("john appleseed"), user.InvalidAgeError()}))
 }
 
 func debug(err error) {
-	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors.Unwrap()))
+	fmt.Println("is ErrValidationErrors?", errors.Is(err, user.ErrValidationErrors))
 
 	var custom *errors.Error
 	if errors.As(err, &custom) {
@@ -37,7 +24,7 @@ func debug(err error) {
 	fmt.Println("error?", custom.Error())
 
 	fmt.Println("is original modified?", err)
-	fmt.Println("is parent modified?", user.ErrValidationErrors.Unwrap())
+	fmt.Println("is parent modified?", user.ErrValidationErrors)
 
 	b, err := json.MarshalIndent(err, "", "  ")
 	if err != nil {

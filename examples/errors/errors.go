@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"encoding/json"
 	stderrors "errors"
 
 	"github.com/alextanhongpin/errors"
@@ -10,10 +9,10 @@ import (
 // Alias to avoid referencing the original package.
 type (
 	Error = errors.Error
-	Tag   = errors.Tag
 )
 
 var (
+	// Export std errors functionality.
 	Is     = stderrors.Is
 	As     = stderrors.As
 	Unwrap = stderrors.Unwrap
@@ -30,8 +29,9 @@ const (
 	Forbidden           errors.Kind = "forbidden"
 )
 
-var bundle = errors.NewBundle(&errors.Options{
-	AllowedKinds: []errors.Kind{
+var (
+	// Export custom errors functionality.
+	_ = errors.MustAddKinds(
 		Unknown,
 		Internal,
 		BadInput,
@@ -40,22 +40,11 @@ var bundle = errors.NewBundle(&errors.Options{
 		FailedPreconditions,
 		Unauthorized,
 		Forbidden,
-	},
-	UnmarshalFn: json.Unmarshal,
-})
+	)
+	Get      = errors.Get
+	MustLoad = errors.MustLoad
+)
 
-func MustLoad(errorCodes []byte) bool {
-	return bundle.MustLoad(errorCodes)
-}
-
-func New(code string) *Error {
-	return bundle.Get(errors.Code(code))
-}
-
-func NewPartial[T any](code string) *errors.PartialError[T] {
-	return errors.ToPartial[T](New(code))
-}
-
-func NewFull[T any](code string, params T) *errors.Error {
-	return NewPartial[T](code).WithParams(params)
+func ToPartial[T any](err *Error) *errors.PartialError[T] {
+	return errors.ToPartial[T](err)
 }

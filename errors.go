@@ -7,39 +7,14 @@ import (
 	"html/template"
 )
 
-type Tag string
-
-type Tags []Tag
-
-func (t Tags) IsZero() bool {
-	return len(t) == 0
-}
-
-func (tags Tags) Has(tag string) bool {
-	for _, t := range tags {
-		if t == Tag(tag) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (t Tags) Copy() Tags {
-	res := make(Tags, len(t))
-	copy(res, t)
-
-	return res
-}
-
 // Error represents an error.
 type Error struct {
-	Kind    string `json:"kind"`
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Params  any    `json:"params,omitempty"`
-	Tags    Tags   `json:"tags,omitempty"`
-	Cause   error  `json:"cause,omitempty"`
+	Kind    string
+	Code    string
+	Message string
+	Params  any
+	Tags    []string
+	Cause   error
 }
 
 // Error fulfills the error interface.
@@ -87,7 +62,7 @@ func (e *Error) WithParams(params any) *Error {
 	return err
 }
 
-func (e *Error) WithTag(tags ...Tag) *Error {
+func (e *Error) WithTag(tags ...string) *Error {
 	err := e.Copy()
 	err.Tags = append(err.Tags, tags...)
 
@@ -96,29 +71,27 @@ func (e *Error) WithTag(tags ...Tag) *Error {
 
 func (e *Error) Copy() *Error {
 	err := *e
-	err.Tags = e.Tags.Copy()
+	tags := make([]string, len(err.Tags))
+	copy(tags, e.Tags)
+	err.Tags = tags
 
 	return &err
 }
 
 func (e *Error) MarshalJSON() ([]byte, error) {
-	type errorResponse struct {
-		Kind    string `json:"kind"`
-		Code    string `json:"code"`
-		Message string `json:"message"`
-		Params  any    `json:"params,omitempty"`
-		Tags    Tags   `json:"tags,omitempty"`
-	}
-
-	res := errorResponse{
+	return json.Marshal(struct {
+		Kind    string   `json:"kind"`
+		Code    string   `json:"code"`
+		Message string   `json:"message"`
+		Params  any      `json:"params,omitempty"`
+		Tags    []string `json:"tags,omitempty"`
+	}{
 		Kind:    e.Kind,
 		Code:    e.Code,
 		Message: e.Error(), // The message returned should be formatted
 		Params:  e.Params,
 		Tags:    e.Tags,
-	}
-
-	return json.Marshal(res)
+	})
 }
 
 type PartialError[T any] struct {
@@ -139,7 +112,7 @@ func (p *PartialError[T]) WithParams(t T) *Error {
 	return p.err.WithParams(t)
 }
 
-func (p *PartialError[T]) WithTag(tags ...Tag) *PartialError[T] {
+func (p *PartialError[T]) WithTag(tags ...string) *PartialError[T] {
 	return ToPartial[T](p.err.WithTag(tags...))
 }
 
