@@ -21,6 +21,7 @@ var (
 	Get            = bundle.Get
 	Add            = bundle.Add
 	AddKinds       = bundle.AddKinds
+	MustAddKinds   = bundle.MustAddKinds
 	SetUnmarshalFn = bundle.SetUnmarshalFn
 	Len            = bundle.Len
 	Load           = bundle.Load
@@ -82,8 +83,19 @@ func (b *Bundle) AddKinds(kinds ...Kind) error {
 	})
 }
 
-func (b *Bundle) SetUnmarshalFn(unmarshalFn func(raw []byte, v any) error) {
+func (b *Bundle) MustAddKinds(kinds ...Kind) bool {
+	if err := b.AddKinds(kinds...); err != nil {
+		panic(err)
+	}
+
+	return true
+}
+
+// SetUnmarshalFn sets the unmarshal function and returns true to allow
+// variable initialization.
+func (b *Bundle) SetUnmarshalFn(unmarshalFn func(raw []byte, v any) error) bool {
 	b.unmarshalFn = unmarshalFn
+	return true
 }
 
 func (b *Bundle) Len() int {
