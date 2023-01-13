@@ -19,3 +19,16 @@ However, the current `error` package has two main limitations
 - you cannot pass values through the errors 
 
 WIP
+
+## Error message
+
+## Functional requirements
+- system should not expose internal error message
+- system should contain detailed explanation on where and why the error occured
+- for client facing side, system should return human readable error message
+- for internal side, system should provide stack
+- system should provide `hint` on how to solve the problem (or if it could be solved)
+
+## TODO
+
+https://wix-ux.com/when-life-gives-you-lemons-write-better-error-messages-46c5223e1a2f
